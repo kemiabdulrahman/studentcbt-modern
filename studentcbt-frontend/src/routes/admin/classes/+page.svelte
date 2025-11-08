@@ -110,10 +110,10 @@
 	<div>
 		<h3 class="text-lg font-semibold mb-2">Create Class</h3>
 		<div class="bg-white p-4 rounded shadow">
-			<label class="block mb-1">Name</label>
-			<input class="border px-2 py-1 w-full mb-2" bind:value={form.name} />
-			<label class="block mb-1">Stream</label>
-			<input class="border px-2 py-1 w-full mb-3" bind:value={form.stream} />
+			<label for="class-name" class="block mb-1">Name</label>
+			<input id="class-name" class="border px-2 py-1 w-full mb-2" bind:value={form.name} />
+			<label for="class-stream" class="block mb-1">Stream</label>
+			<input id="class-stream" class="border px-2 py-1 w-full mb-3" bind:value={form.stream} />
 			<button class="px-3 py-1 bg-blue-600 text-white rounded" on:click={createClass} disabled={busy}>{busy ? 'Creating…' : 'Create'}</button>
 		</div>
 	</div>
@@ -121,16 +121,16 @@
 	<div class="mt-4">
 		<h3 class="text-lg font-semibold mb-2">Assign Subject to Class</h3>
 		<div class="bg-white p-4 rounded shadow">
-			<label class="block mb-1">Select Class</label>
-			<select class="border px-2 py-1 w-full mb-2" bind:value={selectedClassForAssign} on:change={() => viewSubjects(selectedClassForAssign)}>
+			<label for="select-class" class="block mb-1">Select Class</label>
+			<select id="select-class" class="border px-2 py-1 w-full mb-2" bind:value={selectedClassForAssign} on:change={() => viewSubjects(selectedClassForAssign)}>
 				<option value="">-- Select class --</option>
 				{#each classes as c}
 					<option value={c.id}>{c.name}{c.stream ? ` — ${c.stream}` : ''}</option>
 				{/each}
 			</select>
 
-			<label class="block mb-1">Select Subject</label>
-			<select class="border px-2 py-1 w-full mb-3" bind:value={selectedSubjectId}>
+			<label for="select-subject" class="block mb-1">Select Subject</label>
+			<select id="select-subject" class="border px-2 py-1 w-full mb-3" bind:value={selectedSubjectId}>
 				<option value="">-- Select subject --</option>
 				{#each subjects as s}
 					<option value={s.id}>{s.name}</option>

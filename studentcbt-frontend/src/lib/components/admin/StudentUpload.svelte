@@ -93,8 +93,8 @@
 	{/if}
 
 	<div class="mb-3">
-		<label class="block mb-1">Target Class</label>
-		<select bind:value={selectedClass} class="border px-2 py-1 w-full">
+		<label for="target-class" class="block mb-1">Target Class</label>
+		<select id="target-class" bind:value={selectedClass} class="border px-2 py-1 w-full">
 			<option value="">-- Select class --</option>
 			{#each classes as c}
 				<option value={c.id}>{c.name}{c.stream ? ` — ${c.stream}` : ''}</option>
@@ -103,7 +103,7 @@
 	</div>
 
 	<div class="mb-3">
-		<label class="block mb-1">Student file (xlsx, xls or csv, max 5MB)</label>
+		<label for="student-file-input" class="block mb-1">Student file (xlsx, xls or csv, max 5MB)</label>
 		<input id="student-file-input" type="file" accept=".xlsx,.xls,.csv" on:change={handleFileChange} />
 	</div>
 

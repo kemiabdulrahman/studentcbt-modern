@@ -16,7 +16,7 @@
     "@sveltejs/kit": "^1.27.4",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.5",
-    "autoprefixer": "^10.4.16",
+    "autoprefixer": "^10.4.21",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-svelte": "^2.30.0",
@@ -32,12 +32,12 @@
   "dependencies": {
     "@tailwindcss/forms": "^0.5.6",
     "@tailwindcss/typography": "^0.5.10",
-    "lucide-svelte": "^0.292.0",
-    "js-cookie": "^3.0.5",
     "@types/js-cookie": "^3.0.6",
     "chart.js": "^4.4.0",
     "chartjs-adapter-date-fns": "^2.0.1",
     "date-fns": "^2.30.0",
+    "js-cookie": "^3.0.5",
+    "lucide-svelte": "^0.292.0",
     "zod": "^3.22.4"
   },
   "type": "module"

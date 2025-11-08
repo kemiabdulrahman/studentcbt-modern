@@ -52,8 +52,8 @@
 	<div>
 		<h3 class="text-lg font-semibold mb-2">Create Subject</h3>
 		<div class="bg-white p-4 rounded shadow">
-			<label class="block mb-1">Name</label>
-			<input class="border px-2 py-1 w-full mb-3" bind:value={form.name} />
+			<label for="subject-name" class="block mb-1">Name</label>
+			<input id="subject-name" class="border px-2 py-1 w-full mb-3" bind:value={form.name} />
 			<button class="px-3 py-1 bg-blue-600 text-white rounded" on:click={create} disabled={busy}>{busy ? 'Creating…' : 'Create'}</button>
 		</div>
 	</div>
