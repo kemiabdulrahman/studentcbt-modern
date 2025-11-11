@@ -78,28 +78,43 @@
 	}
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-	<div class="md:col-span-2">
-		<h2 class="text-xl font-semibold mb-3">Classes</h2>
-		{#if error}
-			<div class="text-red-600 mb-2">{error}</div>
-		{/if}
+<div class="space-y-6 p-4 lg:p-6">
+	<!-- Error Message -->
+	{#if error}
+		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+			{error}
+		</div>
+	{/if}
 
-		<div class="bg-white rounded shadow overflow-auto">
-			<table class="min-w-full text-sm">
-				<thead class="bg-gray-100 text-left">
+	<!-- Classes List Section -->
+	<div class="bg-white rounded-lg shadow">
+		<div class="p-4 lg:p-6 border-b border-gray-200">
+			<h2 class="text-2xl font-bold text-gray-900">Classes</h2>
+			<p class="text-sm text-gray-600 mt-1">Manage all classes in the system</p>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
+				<thead class="bg-gray-50 border-b border-gray-200">
 					<tr>
-						<th class="p-2">Name</th>
-						<th class="p-2">Stream</th>
-						<th class="p-2">Subjects</th>
+						<th class="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
+						<th class="px-4 py-3 text-left font-semibold text-gray-700">Stream</th>
+						<th class="px-4 py-3 text-left font-semibold text-gray-700">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each classes as c}
-						<tr class="border-t">
-							<td class="p-2">{c.name}</td>
-							<td class="p-2">{c.stream}</td>
-							<td class="p-2"><button class="text-blue-600" on:click={() => viewSubjects(c.id)}>View</button></td>
+						<tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+							<td class="px-4 py-3 text-gray-900">{c.name}</td>
+							<td class="px-4 py-3 text-gray-600">{c.stream || '-'}</td>
+							<td class="px-4 py-3">
+								<button
+									on:click={() => viewSubjects(c.id)}
+									class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
+								>
+									View Subjects
+								</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -107,51 +122,133 @@
 		</div>
 	</div>
 
-	<div>
-		<h3 class="text-lg font-semibold mb-2">Create Class</h3>
-		<div class="bg-white p-4 rounded shadow">
-			<label for="class-name" class="block mb-1">Name</label>
-			<input id="class-name" class="border px-2 py-1 w-full mb-2" bind:value={form.name} />
-			<label for="class-stream" class="block mb-1">Stream</label>
-			<input id="class-stream" class="border px-2 py-1 w-full mb-3" bind:value={form.stream} />
-			<button class="px-3 py-1 bg-blue-600 text-white rounded" on:click={createClass} disabled={busy}>{busy ? 'Creating…' : 'Create'}</button>
+	<!-- Create Class Section -->
+	<div class="bg-white rounded-lg shadow">
+		<div class="p-4 lg:p-6 border-b border-gray-200">
+			<h3 class="text-xl font-bold text-gray-900">Create New Class</h3>
+			<p class="text-sm text-gray-600 mt-1">Add a new class to the system</p>
+		</div>
+
+		<div class="p-4 lg:p-6">
+			<form on:submit|preventDefault={createClass} class="space-y-4">
+				<div>
+					<label for="class-name" class="block text-sm font-medium text-gray-700 mb-1">
+						Class Name <span class="text-red-600">*</span>
+					</label>
+					<input
+						id="class-name"
+						type="text"
+						bind:value={form.name}
+						placeholder="e.g., JSS1, SSS3"
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+						required
+					/>
+				</div>
+
+				<div>
+					<label for="class-stream" class="block text-sm font-medium text-gray-700 mb-1">
+						Stream (Optional)
+					</label>
+					<input
+						id="class-stream"
+						type="text"
+						bind:value={form.stream}
+						placeholder="e.g., Science, Arts, Commercial"
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+					/>
+				</div>
+
+				<button
+					type="submit"
+					disabled={busy || !form.name}
+					class="w-full lg:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					{busy ? 'Creating...' : 'Create Class'}
+				</button>
+			</form>
 		</div>
 	</div>
 
-	<div class="mt-4">
-		<h3 class="text-lg font-semibold mb-2">Assign Subject to Class</h3>
-		<div class="bg-white p-4 rounded shadow">
-			<label for="select-class" class="block mb-1">Select Class</label>
-			<select id="select-class" class="border px-2 py-1 w-full mb-2" bind:value={selectedClassForAssign} on:change={() => viewSubjects(selectedClassForAssign)}>
-				<option value="">-- Select class --</option>
-				{#each classes as c}
-					<option value={c.id}>{c.name}{c.stream ? ` — ${c.stream}` : ''}</option>
-				{/each}
-			</select>
+	<!-- Assign Subject Section -->
+	<div class="bg-white rounded-lg shadow">
+		<div class="p-4 lg:p-6 border-b border-gray-200">
+			<h3 class="text-xl font-bold text-gray-900">Assign Subjects to Class</h3>
+			<p class="text-sm text-gray-600 mt-1">Link subjects with classes</p>
+		</div>
 
-			<label for="select-subject" class="block mb-1">Select Subject</label>
-			<select id="select-subject" class="border px-2 py-1 w-full mb-3" bind:value={selectedSubjectId}>
-				<option value="">-- Select subject --</option>
-				{#each subjects as s}
-					<option value={s.id}>{s.name}</option>
-				{/each}
-			</select>
-
-			<div class="flex gap-2">
-				<button class="px-3 py-1 bg-green-600 text-white rounded" on:click={assignSubject} disabled={busy || !selectedClassForAssign || !selectedSubjectId}>{busy ? 'Assigning…' : 'Assign'}</button>
-				<button class="px-3 py-1 bg-gray-200 rounded" on:click={() => { selectedClassForAssign=''; selectedSubjectId=''; assignedSubjects=[]; }}>Clear</button>
-			</div>
-
-			{#if assignedSubjects && assignedSubjects.length > 0}
-				<div class="mt-3">
-					<h4 class="font-medium">Assigned Subjects</h4>
-					<ul class="text-sm list-disc ml-5 mt-2">
-						{#each assignedSubjects as asg}
-							<li>{asg.subject?.name}</li>
+		<div class="p-4 lg:p-6">
+			<form on:submit|preventDefault={assignSubject} class="space-y-4">
+				<div>
+					<label for="select-class" class="block text-sm font-medium text-gray-700 mb-1">
+						Select Class <span class="text-red-600">*</span>
+					</label>
+					<select
+						id="select-class"
+						bind:value={selectedClassForAssign}
+						on:change={() => viewSubjects(selectedClassForAssign)}
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+						required
+					>
+						<option value="">-- Select a class --</option>
+						{#each classes as c}
+							<option value={c.id}>{c.name}{c.stream ? ` — ${c.stream}` : ''}</option>
 						{/each}
-					</ul>
+					</select>
 				</div>
-			{/if}
+
+				<div>
+					<label for="select-subject" class="block text-sm font-medium text-gray-700 mb-1">
+						Select Subject <span class="text-red-600">*</span>
+					</label>
+					<select
+						id="select-subject"
+						bind:value={selectedSubjectId}
+						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+						required
+					>
+						<option value="">-- Select a subject --</option>
+						{#each subjects as s}
+							<option value={s.id}>{s.name}</option>
+						{/each}
+					</select>
+				</div>
+
+				<div class="flex flex-col sm:flex-row gap-2">
+					<button
+						type="submit"
+						disabled={busy || !selectedClassForAssign || !selectedSubjectId}
+						class="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{busy ? 'Assigning...' : 'Assign Subject'}
+					</button>
+					<button
+						type="button"
+						on:click={() => {
+							selectedClassForAssign = '';
+							selectedSubjectId = '';
+							assignedSubjects = [];
+						}}
+						class="px-6 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition"
+					>
+						Clear
+					</button>
+				</div>
+
+				<!-- Assigned Subjects List -->
+				{#if assignedSubjects && assignedSubjects.length > 0}
+					<div class="mt-6 pt-6 border-t border-gray-200">
+						<h4 class="font-semibold text-gray-900 mb-3">Assigned Subjects for {selectedClassForAssign ? classes.find(c => c.id === selectedClassForAssign)?.name : ''}</h4>
+						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+							{#each assignedSubjects as asg}
+								<div class="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
+									<div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+									<span class="text-sm text-gray-900">{asg.subject?.name}</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</form>
 		</div>
 	</div>
 </div>

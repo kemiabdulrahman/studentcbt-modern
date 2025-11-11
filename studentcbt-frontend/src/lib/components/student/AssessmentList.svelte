@@ -34,71 +34,69 @@
 	}
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-0">
 	{#if loading}
 		<div class="col-span-full text-center py-12">
 			<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-			<p class="mt-4">Loading assessments...</p>
+			<p class="mt-4 text-sm sm:text-base">Loading assessments...</p>
 		</div>
 	{:else if error}
-		<div class="col-span-full p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+		<div class="col-span-full p-3 sm:p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm sm:text-base">
 			{error}
 		</div>
 	{:else if assessments.length === 0}
-		<div class="col-span-full bg-white rounded-lg shadow p-8 text-center">
-			<p class="text-gray-600">No assessments available at this time.</p>
+		<div class="col-span-full bg-white rounded-lg shadow p-6 sm:p-8 text-center">
+			<p class="text-gray-600 text-sm sm:text-base">No assessments available at this time.</p>
 		</div>
 	{:else}
 		{#each assessments as assessment}
 			{@const status = getStatusBadge(assessment.attemptStatus)}
-			<div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
-				<div class="flex justify-between items-start mb-3">
-					<div>
-						<h3 class="text-xl font-semibold text-gray-800">{assessment.title}</h3>
-						<p class="text-sm text-gray-600">{assessment.subject.name}</p>
+			<div class="bg-white rounded-lg shadow hover:shadow-lg transition p-4 sm:p-6 flex flex-col">
+				<div class="flex flex-col sm:flex-row justify-between sm:items-start gap-2 mb-3">
+					<div class="flex-1 min-w-0">
+						<h3 class="text-lg sm:text-xl font-semibold text-gray-800 truncate">{assessment.title}</h3>
+						<p class="text-xs sm:text-sm text-gray-600 truncate">{assessment.subject.name}</p>
 					</div>
-					<span class="px-3 py-1 rounded-full text-xs font-medium {status.color}">
+					<span class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium {status.color} whitespace-nowrap">
 						{status.label}
 					</span>
 				</div>
 
-				<p class="text-gray-700 mb-4">{assessment.description}</p>
+				<p class="text-gray-700 mb-4 text-sm sm:text-base line-clamp-2">{assessment.description}</p>
 
-				<div class="grid grid-cols-3 gap-3 mb-4 text-sm">
-					<div class="bg-gray-50 p-2 rounded">
-						<div class="text-gray-600">Questions</div>
-						<div class="font-bold">{assessment._count.questions}</div>
+				<div class="grid grid-cols-3 gap-2 mb-4 text-xs sm:text-sm">
+					<div class="bg-gray-50 p-2 sm:p-3 rounded">
+						<div class="text-gray-600 text-xs">Questions</div>
+						<div class="font-bold text-sm sm:text-base">{assessment._count.questions}</div>
 					</div>
-					<div class="bg-gray-50 p-2 rounded">
-						<div class="text-gray-600">Duration</div>
-						<div class="font-bold">{assessment.duration} min</div>
+					<div class="bg-gray-50 p-2 sm:p-3 rounded">
+						<div class="text-gray-600 text-xs">Duration</div>
+						<div class="font-bold text-sm sm:text-base">{assessment.duration}m</div>
 					</div>
-					<div class="bg-gray-50 p-2 rounded">
-						<div class="text-gray-600">Total Marks</div>
-						<div class="font-bold">{assessment.totalMarks}</div>
+					<div class="bg-gray-50 p-2 sm:p-3 rounded">
+						<div class="text-gray-600 text-xs">Marks</div>
+						<div class="font-bold text-sm sm:text-base">{assessment.totalMarks}</div>
 					</div>
 				</div>
 
 				{#if assessment.attemptStatus.hasAttempted}
-					<div class="bg-blue-50 p-3 rounded mb-4">
-						<div class="text-sm">
-							<p class="font-semibold">Score: {assessment.attemptStatus.score} / {assessment.totalMarks}</p>
-							<p class="text-gray-600">{assessment.attemptStatus.percentage?.toFixed(1) || 0}%</p>
-						</div>
+					<div class="bg-blue-50 p-2 sm:p-3 rounded mb-4 text-xs sm:text-sm">
+						<p class="font-semibold text-gray-900">Score: {assessment.attemptStatus.score} / {assessment.totalMarks}</p>
+						<p class="text-gray-600">{assessment.attemptStatus.percentage?.toFixed(1) || 0}%</p>
 					</div>
 				{/if}
 
-				<div class="flex gap-2">
+				<div class="mt-auto">
 					{#if !assessment.attemptStatus.hasAttempted}
-						<a href={`/student/assessments/${assessment.id}/take`} class="flex-1 px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition text-center">
-							Start Assessment
+						<a href={`/student/assessments/${assessment.id}/take`} class="block w-full px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded font-medium hover:bg-blue-700 transition text-center">
+							Start
 						</a>
 					{:else if assessment.attemptStatus.status === 'IN_PROGRESS'}
-						<a href={`/student/assessments/${assessment.id}/take`} class="flex-1 px-4 py-2 bg-yellow-600 text-white rounded font-medium hover:bg-yellow-700 transition text-center">
+						<a href={`/student/assessments/${assessment.id}/take`} class="block w-full px-3 sm:px-4 py-2 bg-yellow-600 text-white text-sm sm:text-base rounded font-medium hover:bg-yellow-700 transition text-center">
 							Continue
 						</a>
 					{:else}
-						<a href={`/student/results/${assessment.id}`} class="flex-1 px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700 transition text-center">
+						<a href={`/student/results/${assessment.id}`} class="block w-full px-3 sm:px-4 py-2 bg-green-600 text-white text-sm sm:text-base rounded font-medium hover:bg-green-700 transition text-center">
 							View Result
 						</a>
 					{/if}

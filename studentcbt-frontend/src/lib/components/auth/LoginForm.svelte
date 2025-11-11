@@ -48,6 +48,8 @@
 		} catch (error) {
 			console.error('Login error:', error);
 			generalError = error.message || 'Login failed. Please try again.';
+			// Also show error toast for better visibility
+			toastStore.error(generalError);
 		} finally {
 			loading = false;
 		}

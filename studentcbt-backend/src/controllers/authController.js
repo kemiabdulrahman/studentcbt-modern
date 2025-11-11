@@ -33,12 +33,24 @@ const login = async (req, res) => {
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Remove password from response
+    // Remove password from response and prepare user data
     const { password: _, ...userWithoutPassword } = user;
+    
+    // Add firstName and lastName based on role
+    let userData = { ...userWithoutPassword };
+    if (user.role === 'STUDENT' && user.student) {
+      userData.firstName = user.student.firstName;
+      userData.lastName = user.student.lastName;
+    } else if (user.role === 'ADMIN') {
+      // For admin, use email prefix as firstName
+      const emailPrefix = email.split('@')[0];
+      userData.firstName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+      userData.lastName = 'Admin';
+    }
 
     res.json({
       message: 'Login successful',
-      user: userWithoutPassword,
+      user: userData,
       tokens: {
         accessToken,
         refreshToken

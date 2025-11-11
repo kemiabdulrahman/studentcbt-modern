@@ -3,6 +3,7 @@
   import { authStore, authLoading, isAuthenticated } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+  import Navbar from '$lib/components/layout/Navbar.svelte';
 
   // Subscribe to the actual loading state from auth store
   let isLoadingAuth = true;
@@ -27,6 +28,9 @@
 <svelte:head>
   <title>StudentCBT - Computer Based Testing Platform</title>
 </svelte:head>
+
+<!-- Navbar - visible on all pages -->
+<Navbar />
 
 {#if isLoadingAuth && !$page.url.pathname.startsWith('/auth')}
   <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
