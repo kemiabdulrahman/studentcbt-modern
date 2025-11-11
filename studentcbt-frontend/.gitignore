@@ -1,46 +1,7 @@
-# Dependencies
-node_modules/
-npm-debug.log
-npm-error.log
-yarn-error.log
-pnpm-debug.log
+# Frontend-specific patterns (if any)
+# All common patterns are managed in the root .gitignore file
+# This file is kept for potential frontend-specific ignores in the future
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# Build outputs
-dist/
-build/
-.svelte-kit/
-
-# Testing
-.coverage/
-coverage/
-.nyc_output/
-
-# Logs
-logs/
-*.log
-
-# Misc
-.cache/
-.eslintcache
+# Svelte-Kit specific (covered in root, but documented here)
+# .svelte-kit/
+# node_modules/

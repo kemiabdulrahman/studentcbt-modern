@@ -1,51 +1,150 @@
-# Dependencies
+# ============================================================================
+# DEPENDENCIES
+# ============================================================================
 node_modules/
-npm-debug.log
-npm-error.log
-yarn-error.log
-pnpm-debug.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Environment variables
+# NPM/Yarn/PNPM Logs
+npm-debug.log*
+npm-error.log*
+yarn-error.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development.local
+.env.test.local
+.env.production.local
 
-# OS files
-.DS_Store
-Thumbs.db
+# ============================================================================
+# BUILD OUTPUTS & ARTIFACTS
+# ============================================================================
+# Frontend (SvelteKit)
+dist/
+.svelte-kit/
+build/
 
-# IDE
+# Backend
+*.tsbuildinfo
+
+# General build files
+out/
+.output/
+coverage/
+.coverage/
+
+# ============================================================================
+# IDE & EDITOR
+# ============================================================================
+# VSCode
 .vscode/
+*.code-workspace
+
+# IntelliJ IDEA
 .idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim/Neovim
 *.swp
 *.swo
 *~
+.vim
+.netrwhist
+
+# Other editors
 .project
 .classpath
 .c9/
 *.launch
 .settings/
-*.sublime-workspace
+.DS_Store
 
-# Build outputs
-dist/
-build/
-.svelte-kit/
+# ============================================================================
+# OS SPECIFIC FILES
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-# Testing
-.coverage/
-coverage/
+# ============================================================================
+# TESTING & COVERAGE
+# ============================================================================
 .nyc_output/
+.coverage
+coverage/
+*.lcov
+.tap
+*.tgz
 
-# Logs
+# Jest
+jest.config.js
+.jest-cache/
+
+# ============================================================================
+# RUNTIME & LOGS
+# ============================================================================
 logs/
+log/
 *.log
+*.log.*
 
-# Misc
+# ============================================================================
+# CACHING & TEMPORARY FILES
+# ============================================================================
 .cache/
 .eslintcache
+.prettierignore
+.turbo/
+.next/
+.nuxt/
 
-# Project specific
+# Temp files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ============================================================================
+# PROJECT SPECIFIC (Backend & Frontend)
+# ============================================================================
+# Backend uploads
 uploads/
-.env.production
-.env.staging
+public/uploads/
+
+# Prisma
+prisma/migrations/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================================================
+# IDE GENERATED & MISC
+# ============================================================================
+.history/
+.vimrc
+.editorconfig.user
+.envrc
+.direnv/

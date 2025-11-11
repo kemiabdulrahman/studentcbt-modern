@@ -26,18 +26,18 @@
 </script>
 
 <nav class="bg-white shadow-md sticky top-0 z-50">
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+	<div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
 		<div class="flex justify-between items-center h-16">
 			<!-- Logo/Brand -->
-			<div class="flex items-center gap-3 cursor-pointer" on:click={() => goto('/')}>
-				<div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-					<span class="text-white font-bold text-lg">CBT</span>
+			<div class="flex items-center gap-2 sm:gap-3 cursor-pointer flex-shrink-0" on:click={() => goto('/')}>
+				<div class="w-9 sm:w-10 h-9 sm:h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+					<span class="text-white font-bold text-sm sm:text-lg">CBT</span>
 				</div>
-				<h1 class="text-xl font-bold text-gray-900 hidden sm:block">StudentCBT</h1>
+				<h1 class="text-lg sm:text-xl font-bold text-gray-900 hidden sm:block">StudentCBT</h1>
 			</div>
 
 			<!-- Desktop Navigation -->
-			<div class="hidden md:flex items-center gap-6">
+			<div class="hidden md:flex items-center gap-4 lg:gap-6">
 				{#if user}
 					<div class="flex items-center gap-2">
 						<div class="text-right">
@@ -54,7 +54,7 @@
 								{/if}
 							</p>
 						</div>
-						<div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center">
+						<div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center flex-shrink-0">
 							<span class="text-white font-semibold text-sm">
 								{(user.firstName?.[0] || 'U')}{(user.lastName?.[0] || 'S')}
 							</span>
@@ -80,7 +80,7 @@
 			<!-- Mobile Menu Button -->
 			<button
 				on:click={toggleMenu}
-				class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+				class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition flex-shrink-0"
 			>
 				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					{#if showMenu}
