@@ -1,0 +1,77 @@
+<script>
+	import api from '$lib/utils/api';
+	import { toastStore } from '$lib/stores/ui';
+
+	let { data } = $props();
+
+	let error = data?.error || '';
+
+	function getGradeColor(percentage, passMarks) {
+		if (percentage >= passMarks) return 'bg-green-100 text-green-800 border-green-300';
+		return 'bg-red-100 text-red-800 border-red-300';
+	}
+</script>
+
+<div class="p-6 md:p-8">
+	<h1 class="text-3xl font-bold mb-6">My Results</h1>
+
+	{#if error}
+		<div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded mb-4">
+			{error}
+		</div>
+	{/if}
+
+	{#if data.results.length === 0}
+		<div class="bg-white rounded-lg shadow p-8 text-center">
+			<p class="text-gray-600">No results available yet. Complete some assessments to see your results here.</p>
+		</div>
+	{:else}
+		<div class="bg-white rounded-lg shadow overflow-hidden">
+			<table class="w-full">
+				<thead class="bg-gray-100 border-b">
+					<tr>
+						<th class="px-6 py-3 text-left font-semibold">Assessment</th>
+						<th class="px-6 py-3 text-left font-semibold">Subject</th>
+						<th class="px-6 py-3 text-center font-semibold">Score</th>
+						<th class="px-6 py-3 text-center font-semibold">Percentage</th>
+						<th class="px-6 py-3 text-center font-semibold">Status</th>
+						<th class="px-6 py-3 text-center font-semibold">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each data.results as result}
+						<tr class="border-b hover:bg-gray-50 transition">
+							<td class="px-6 py-4 font-medium">{result.assessment.title}</td>
+							<td class="px-6 py-4">{result.assessment.subject.name}</td>
+							<td class="px-6 py-4 text-center">
+								<div class="font-bold">{result.totalScore}</div>
+								<div class="text-sm text-gray-600">/ {result.assessment.totalMarks}</div>
+							</td>
+							<td class="px-6 py-4 text-center">
+								<span class="px-3 py-1 rounded font-semibold {getGradeColor(result.percentage, result.assessment.passMarks)} border">
+									{result.percentage?.toFixed(1)}%
+								</span>
+							</td>
+							<td class="px-6 py-4 text-center">
+								{#if result.percentage >= result.assessment.passMarks}
+									<span class="px-3 py-1 rounded bg-green-100 text-green-800 text-sm font-medium">Pass</span>
+								{:else}
+									<span class="px-3 py-1 rounded bg-red-100 text-red-800 text-sm font-medium">Fail</span>
+								{/if}
+							</td>
+							<td class="px-6 py-4 text-center">
+								<a href={`/student/results/${result.assessment.id}`} class="text-blue-600 hover:text-blue-800 font-medium">
+									View Details
+								</a>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
+</div>
+
+<style>
+	/* Tailwind handles styling */
+</style>
