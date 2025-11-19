@@ -3,8 +3,7 @@
 	import { authStore, authLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import Header from './Header.svelte';
-	import Sidebar from './Sidebar.svelte';
+	import CollapsibleSidebar from './CollapsibleSidebar.svelte';
 	import ToastContainer from '$components/ui/ToastContainer.svelte';
 	import LoadingSpinner from '$components/ui/LoadingSpinner.svelte';
 
@@ -48,19 +47,13 @@
 		<LoadingSpinner size="lg" />
 	</div>
 {:else}
-	<div class="min-h-screen bg-gray-50">
-		<Sidebar />
-		
-		<div class="lg:pl-64">
-			<Header />
-			
-			<main class="py-6">
-				<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<slot />
-				</div>
-			</main>
-		</div>
-	</div>
+	<CollapsibleSidebar>
+		<main class="py-6">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<slot />
+			</div>
+		</main>
+	</CollapsibleSidebar>
 
 	<!-- Toast notifications -->
 	<ToastContainer />

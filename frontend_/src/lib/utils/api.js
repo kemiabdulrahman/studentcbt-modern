@@ -5,12 +5,10 @@ import Cookies from 'js-cookie';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-/**
- * Custom fetch wrapper with authentication and error handling
- * @param {string} url 
- * @param {RequestInit} options 
- * @returns {Promise<Response>}
- */
+// Token refresh lock to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshPromise = null;
+
 async function apiFetch(url, options = {}) {
 	const auth = get(authStore);
 	
@@ -32,8 +30,19 @@ async function apiFetch(url, options = {}) {
 
 		// Handle 401 errors (token expiry)
 		if (response.status === 401 && auth.isAuthenticated) {
-			// Try to refresh token
-			const refreshed = await refreshToken();
+			// Prevent multiple refresh attempts simultaneously
+			if (isRefreshing) {
+				await refreshPromise;
+				config.headers.Authorization = `Bearer ${get(authStore).tokens?.accessToken}`;
+				return fetch(`${API_BASE_URL}${url}`, config);
+			}
+
+			isRefreshing = true;
+			refreshPromise = refreshToken();
+			const refreshed = await refreshPromise;
+			isRefreshing = false;
+			refreshPromise = null;
+
 			if (refreshed) {
 				// Retry the original request with new token
 				config.headers.Authorization = `Bearer ${get(authStore).tokens?.accessToken}`;
@@ -49,15 +58,13 @@ async function apiFetch(url, options = {}) {
 		return response;
 	} catch (error) {
 		console.error('API request failed:', error);
+		isRefreshing = false;
+		refreshPromise = null;
 		throw error;
 	}
 }
 
-/**
- * Parse API response and handle errors
- * @param {Response} response 
- * @returns {Promise<any>}
- */
+
 async function parseResponse(response) {
 	const contentType = response.headers.get('content-type');
 	
@@ -79,10 +86,7 @@ async function parseResponse(response) {
 	}
 }
 
-/**
- * Refresh authentication token
- * @returns {Promise<boolean>}
- */
+
 async function refreshToken() {
 	try {
 		const auth = get(authStore);
@@ -117,11 +121,6 @@ async function refreshToken() {
 export const api = {
 	// Authentication
 	auth: {
-		/**
-		 * Login user
-		 * @param {import('$types').LoginCredentials} credentials 
-		 * @returns {Promise<{user: import('$types').User, tokens: import('$types').AuthTokens}>}
-		 */
 		async login(credentials) {
 			const response = await apiFetch('/auth/login', {
 				method: 'POST',
@@ -130,20 +129,11 @@ export const api = {
 			return parseResponse(response);
 		},
 
-		/**
-		 * Get user profile
-		 * @returns {Promise<{user: import('$types').User}>}
-		 */
 		async getProfile() {
 			const response = await apiFetch('/auth/profile');
 			return parseResponse(response);
 		},
 
-		/**
-		 * Change password
-		 * @param {{currentPassword: string, newPassword: string}} passwordData 
-		 * @returns {Promise<{message: string}>}
-		 */
 		async changePassword(passwordData) {
 			const response = await apiFetch('/auth/change-password', {
 				method: 'POST',
@@ -170,11 +160,6 @@ export const api = {
 				return parseResponse(response);
 			},
 
-			/**
-			 * Get all students
-			 * @param {{page?: number, limit?: number, classId?: string, search?: string}} params 
-			 * @returns {Promise<{students: import('$types').Student[], pagination: Object}>}
-			 */
 			async getAll(params = {}) {
 				const searchParams = new URLSearchParams();
 				Object.entries(params).forEach(([key, value]) => {
@@ -201,11 +186,7 @@ export const api = {
 				return parseResponse(response);
 			},
 
-			/**
-			 * Delete student
-			 * @param {string} id 
-			 * @returns {Promise<{message: string}>}
-			 */
+			
 			async delete(id) {
 				const response = await apiFetch(`/admin/students/${id}`, {
 					method: 'DELETE'
@@ -216,11 +197,7 @@ export const api = {
 
 		// Class management
 		classes: {
-			/**
-			 * Create new class
-			 * @param {{name: string, stream?: string}} classData 
-			 * @returns {Promise<{class: import('$types').SchoolClass}>}
-			 */
+			
 			async create(classData) {
 				const response = await apiFetch('/admin/classes', {
 					method: 'POST',
@@ -229,20 +206,13 @@ export const api = {
 				return parseResponse(response);
 			},
 
-			/**
-			 * Get all classes
-			 * @returns {Promise<{classes: import('$types').SchoolClass[]}>}
-			 */
+			
 			async getAll() {
 				const response = await apiFetch('/admin/classes');
 				return parseResponse(response);
 			},
 
-			/**
-			 * Get subjects for a class
-			 * @param {string} classId 
-			 * @returns {Promise<{classSubjects: any[]}>}
-			 */
+			
 			async getSubjects(classId) {
 				const response = await apiFetch(`/admin/classes/${classId}/subjects`);
 				return parseResponse(response);
@@ -264,20 +234,13 @@ export const api = {
 				return parseResponse(response);
 			},
 
-			/**
-			 * Get all subjects
-			 * @returns {Promise<{subjects: import('$types').Subject[]}>}
-			 */
+			
 			async getAll() {
 				const response = await apiFetch('/admin/subjects');
 				return parseResponse(response);
 			},
 
-			/**
-			 * Assign subject to class
-			 * @param {{classId: string, subjectId: string}} assignmentData 
-			 * @returns {Promise<any>}
-			 */
+			
 			async assignToClass(assignmentData) {
 				const response = await apiFetch('/admin/class-subjects', {
 					method: 'POST',
@@ -290,11 +253,7 @@ export const api = {
 
 	// Assessment endpoints
 	assessments: {
-		/**
-		 * Create new assessment
-		 * @param {import('$types').CreateAssessmentData} assessmentData 
-		 * @returns {Promise<{assessment: import('$types').Assessment}>}
-		 */
+		
 		async create(assessmentData) {
 			const response = await apiFetch('/assessment', {
 				method: 'POST',

@@ -75,13 +75,12 @@
 		<!-- Navigation -->
 		<nav class="flex-1 space-y-1 px-3 py-4">
 			{#each navigation as item}
-				
+				<a>
 					href={item.href}
 					class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {isActivePath(item.href)
 						? 'bg-gray-800 text-white'
 						: 'text-gray-300 hover:bg-gray-700 hover:text-white'}"
 					on:click={closeSidebar}
-				>
 					<svelte:component 
 						this={item.icon} 
 						class="mr-3 h-5 w-5 flex-shrink-0 {isActivePath(item.href) ? 'text-white' : 'text-gray-400 group-hover:text-white'}" 

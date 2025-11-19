@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import api from '$lib/utils/api';
+	import { toastStore } from '$lib/stores/ui';
 
 	let classes = [];
 	let subjects = [];
@@ -12,6 +13,11 @@
 	let selectedClassForAssign = '';
 	let selectedSubjectId = '';
 	let assignedSubjects = [];
+	
+	// Modal state
+	let showSubjectsModal = false;
+	let selectedClassName = '';
+	let viewingSubjects = [];
 
 	async function load() {
 		try {
@@ -36,6 +42,7 @@
 			classes.push(resp.class);
 			form.name = '';
 			form.stream = '';
+			toastStore.success('Class created successfully');
 		} catch (err) {
 			console.error('Create class failed', err);
 			error = err.message || 'Create failed';
@@ -47,11 +54,15 @@
 	async function viewSubjects(classId) {
 		try {
 			const resp = await api.admin.classes.getSubjects(classId);
-			assignedSubjects = resp.classSubjects || [];
+			viewingSubjects = resp.classSubjects || [];
+			selectedClassName = classes.find(c => c.id === classId)?.name || '';
+			showSubjectsModal = true;
 			selectedClassForAssign = classId;
+			// Also load for assignment section
+			assignedSubjects = resp.classSubjects || [];
 		} catch (err) {
 			console.error('Get class subjects failed', err);
-			error = err.message || 'Failed to load subjects';
+			toastStore.error(err.message || 'Failed to load subjects');
 		}
 	}
 
@@ -67,6 +78,7 @@
 			const resp = await api.admin.subjects.assignToClass({ classId: selectedClassForAssign, subjectId: selectedSubjectId });
 			// refresh assigned subjects
 			await viewSubjects(selectedClassForAssign);
+			toastStore.success('Subject assigned successfully');
 			// keep selected subject selected for quick multiple assigns
 			return resp;
 		} catch (err) {
@@ -75,6 +87,12 @@
 		} finally {
 			busy = false;
 		}
+	}
+	
+	function closeSubjectsModal() {
+		showSubjectsModal = false;
+		viewingSubjects = [];
+		selectedClassName = '';
 	}
 </script>
 
@@ -252,3 +270,48 @@
 		</div>
 	</div>
 </div>
+
+<!-- Subjects Modal -->
+{#if showSubjectsModal}
+	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+		<div class="bg-white rounded-lg shadow-lg max-w-md w-full max-h-96 overflow-y-auto">
+			<div class="p-4 lg:p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+				<h3 class="text-lg font-bold text-gray-900">Subjects for {selectedClassName}</h3>
+				<button
+					type="button"
+					on:click={closeSubjectsModal}
+					class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+				>
+					×
+				</button>
+			</div>
+			
+			<div class="p-4 lg:p-6">
+				{#if viewingSubjects && viewingSubjects.length > 0}
+					<div class="space-y-2">
+						{#each viewingSubjects as subject}
+							<div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+								<div class="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
+								<span class="text-sm font-medium text-gray-900">{subject.subject?.name || subject.name}</span>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="text-center py-6 text-gray-500">
+						<p class="text-sm">No subjects assigned to this class yet</p>
+					</div>
+				{/if}
+			</div>
+			
+			<div class="p-4 lg:p-6 border-t border-gray-200 flex justify-end gap-2">
+				<button
+					type="button"
+					on:click={closeSubjectsModal}
+					class="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition"
+				>
+					Close
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}

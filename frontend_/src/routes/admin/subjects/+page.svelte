@@ -54,6 +54,7 @@
 					<tr>
 						<th class="px-4 py-3 text-left font-semibold text-gray-700">#</th>
 						<th class="px-4 py-3 text-left font-semibold text-gray-700">Subject Name</th>
+						<th class="px-4 py-3 text-left font-semibold text-gray-700">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -61,6 +62,9 @@
 						<tr class="border-b border-gray-200 hover:bg-gray-50 transition">
 							<td class="px-4 py-3 text-gray-600">{i + 1}</td>
 							<td class="px-4 py-3 text-gray-900 font-medium">{s.name}</td>
+							<td class="px-4 py-3">
+								<button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>

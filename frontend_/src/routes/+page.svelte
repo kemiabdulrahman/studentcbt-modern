@@ -30,35 +30,6 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-	<!-- Navigation Header -->
-	<header class="bg-white shadow-sm">
-		<nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-					<span class="text-white font-bold text-lg">CBT</span>
-				</div>
-				<h1 class="text-2xl font-bold text-gray-900">StudentCBT</h1>
-			</div>
-			<div class="flex gap-4">
-				{#if currentUser}
-					<button 
-						on:click={() => goto('/auth/login')}
-						class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition"
-					>
-						Logout
-					</button>
-				{:else}
-					<button 
-						on:click={() => goto('/auth/login')}
-						class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-					>
-						Login
-					</button>
-				{/if}
-			</div>
-		</nav>
-	</header>
-
 	<!-- Hero Section -->
 	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 		{#if currentUser?.id}

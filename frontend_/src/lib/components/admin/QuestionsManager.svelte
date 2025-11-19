@@ -10,6 +10,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 
 	export let assessmentId;
+	
 
 	let questions = [];
 	let loading = false;
@@ -17,6 +18,11 @@
 	let showForm = false;
 	let editingId = null;
 	let bulkImportMode = false;
+	let bulkImportStep = 'format'; // 'format', 'preview', 'uploading'
+	let bulkFile = null;
+	let bulkQuestions = [];
+	let bulkImportError = '';
+	let bulkImporting = false;
 
 	let formData = {
 		questionText: '',
@@ -128,6 +134,136 @@
 			FILL_BLANK: 'bg-green-100 text-green-800'
 		};
 		return map[questionType] || 'bg-gray-100 text-gray-800';
+	}
+
+	// Bulk import functions
+	function parseCSV(csvText) {
+		const lines = csvText.split('\n').filter(line => line.trim());
+		if (lines.length < 2) {
+			throw new Error('CSV file must have at least a header row and one data row');
+		}
+
+		const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+		const requiredFields = ['questiontext', 'questiontype', 'correctanswer'];
+		const missingFields = requiredFields.filter(f => !header.includes(f));
+		
+		if (missingFields.length > 0) {
+			throw new Error(`Missing required columns: ${missingFields.join(', ')}`);
+		}
+
+		const parsed = [];
+		for (let i = 1; i < lines.length; i++) {
+			const values = lines[i].split(',').map(v => v.trim());
+			if (values.every(v => !v)) continue; // Skip empty lines
+
+			const row = {};
+			header.forEach((h, idx) => {
+				row[h] = values[idx] || '';
+			});
+
+			const question = {
+				questionText: row.questiontext,
+				questionType: row.questiontype?.toUpperCase() || 'MULTIPLE_CHOICE',
+				correctAnswer: row.correctanswer,
+				marks: parseInt(row.marks) || 1,
+				explanation: row.explanation || '',
+				options: row.questiontype?.toUpperCase() === 'MULTIPLE_CHOICE' 
+					? [row.option1, row.option2, row.option3, row.option4].filter(o => o)
+					: undefined
+			};
+
+			// Validate
+			if (!question.questionText) throw new Error(`Row ${i + 1}: Question text is required`);
+			if (!['MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_BLANK'].includes(question.questionType)) {
+				throw new Error(`Row ${i + 1}: Invalid question type`);
+			}
+			if (!question.correctAnswer) throw new Error(`Row ${i + 1}: Correct answer is required`);
+			if (question.questionType === 'MULTIPLE_CHOICE' && question.options.length < 2) {
+				throw new Error(`Row ${i + 1}: Multiple choice requires at least 2 options`);
+			}
+
+			parsed.push(question);
+		}
+
+		return parsed;
+	}
+
+	function parseJSON(jsonText) {
+		try {
+			const data = JSON.parse(jsonText);
+			if (!Array.isArray(data)) {
+				throw new Error('JSON must be an array of questions');
+			}
+			return data;
+		} catch (err) {
+			throw new Error(`Invalid JSON: ${err.message}`);
+		}
+	}
+
+	function handleBulkFileSelect(event) {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		bulkFile = file;
+		bulkImportError = '';
+		bulkQuestions = [];
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			try {
+				const text = e.target.result;
+				const ext = file.name.split('.').pop().toLowerCase();
+
+				if (ext === 'csv') {
+					bulkQuestions = parseCSV(text);
+				} else if (ext === 'json') {
+					bulkQuestions = parseJSON(text);
+				} else {
+					bulkImportError = 'Unsupported file format. Please use CSV or JSON.';
+					return;
+				}
+
+				bulkImportStep = 'preview';
+			} catch (err) {
+				bulkImportError = err.message;
+			}
+		};
+
+		reader.onerror = () => {
+			bulkImportError = 'Failed to read file';
+		};
+
+		reader.readAsText(file);
+	}
+
+	async function confirmBulkImport() {
+		if (bulkQuestions.length === 0) {
+			bulkImportError = 'No questions to import';
+			return;
+		}
+
+		bulkImporting = true;
+		bulkImportError = '';
+
+		try {
+			await api.assessments.questions.addBulk(assessmentId, bulkQuestions);
+			toastStore.success(`${bulkQuestions.length} questions imported successfully`);
+			closeBulkImport();
+			loadQuestions();
+		} catch (err) {
+			console.error('Bulk import failed:', err);
+			bulkImportError = err.message || 'Failed to import questions';
+		} finally {
+			bulkImporting = false;
+		}
+	}
+
+	function closeBulkImport() {
+		bulkImportMode = false;
+		bulkImportStep = 'format';
+		bulkFile = null;
+		bulkQuestions = [];
+		bulkImportError = '';
 	}
 
 	onMount(loadQuestions);
@@ -353,6 +489,109 @@
 				<Button type="submit">{editingId ? 'Update' : 'Add'} Question</Button>
 			</div>
 		</form>
+	</Modal>
+{/if}
+
+<!-- Bulk Import Modal -->
+{#if bulkImportMode}
+	<Modal on:close={closeBulkImport}>
+		<div>
+			{#if bulkImportStep === 'format'}
+				<h3 class="text-xl font-bold mb-4">📤 Bulk Import Questions</h3>
+				<div class="space-y-4">
+					<Alert type="info">
+						Import multiple questions at once using CSV or JSON file format
+					</Alert>
+
+					<div class="space-y-3">
+						<div>
+							<h4 class="font-semibold mb-2">CSV Format</h4>
+							<p class="text-sm text-gray-600 mb-2">Required columns: questionText, questionType, correctAnswer, marks (optional)</p>
+							<p class="text-sm text-gray-600 mb-2">For multiple choice, use: option1, option2, option3, option4</p>
+							<div class="bg-gray-50 p-3 rounded text-xs font-mono mb-2 overflow-auto">
+questionText,questionType,correctAnswer,marks,explanation,option1,option2,option3
+What is 2+2?,MULTIPLE_CHOICE,4,1,The sum of 2 and 2,3,4,5
+True or False: Sky is blue,TRUE_FALSE,True,1,,
+What is capital of France?,FILL_BLANK,Paris,1,The capital city
+							</div>
+						</div>
+
+						<div>
+							<h4 class="font-semibold mb-2">JSON Format</h4>
+							<p class="text-sm text-gray-600 mb-2">Array of question objects with required fields</p>
+							<div class="bg-gray-50 p-3 rounded text-xs font-mono mb-2 overflow-auto">
+								<div>Required: questionText, questionType, correctAnswer</div>
+								<div>Optional: marks, explanation, options</div>
+								<div class="mt-2 text-gray-500">Upload file to see example</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="border-t pt-4">
+						<label class="block text-sm font-medium mb-2">Select File</label>
+						<input 
+							type="file" 
+							accept=".csv,.json"
+							on:change={handleBulkFileSelect}
+							class="block w-full text-sm text-gray-500
+								file:mr-4 file:py-2 file:px-4
+								file:rounded-lg file:border-0
+								file:text-sm file:font-semibold
+								file:bg-blue-50 file:text-blue-700
+								hover:file:bg-blue-100"
+						/>
+					</div>
+
+					{#if bulkImportError}
+						<Alert type="error">{bulkImportError}</Alert>
+					{/if}
+				</div>
+			{:else if bulkImportStep === 'preview'}
+				<h3 class="text-xl font-bold mb-4">Preview ({bulkQuestions.length} questions)</h3>
+				
+				{#if bulkImportError}
+					<Alert type="error" class="mb-4">{bulkImportError}</Alert>
+				{/if}
+
+				<div class="space-y-3 max-h-96 overflow-y-auto mb-4">
+					{#each bulkQuestions as q, idx}
+						<div class="border rounded p-3 bg-gray-50">
+							<div class="flex gap-2 mb-2">
+								<span class="font-bold text-sm">{idx + 1}.</span>
+								<div class="flex-1">
+									<p class="font-medium text-sm">{q.questionText}</p>
+									<div class="flex gap-2 mt-1">
+										<Badge class={getBadgeClass(q.questionType)}>
+											{q.questionType}
+										</Badge>
+										<Badge class="bg-gray-100 text-gray-800">
+											{q.marks} mark{q.marks !== 1 ? 's' : ''}
+										</Badge>
+									</div>
+									{#if q.questionType === 'MULTIPLE_CHOICE'}
+										<div class="text-xs mt-1 text-gray-600">
+											Options: {q.options?.join(', ')}
+										</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<div class="flex gap-2 justify-end pt-4 border-t">
+					<Button variant="secondary" on:click={() => bulkImportStep = 'format'}>
+						← Back
+					</Button>
+					<Button 
+						on:click={confirmBulkImport}
+						disabled={bulkImporting}
+					>
+						{bulkImporting ? 'Importing...' : '✓ Import All'}
+					</Button>
+				</div>
+			{/if}
+		</div>
 	</Modal>
 {/if}
 

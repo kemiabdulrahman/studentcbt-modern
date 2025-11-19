@@ -142,22 +142,25 @@
 		</div>
 
 		<!-- Tab Navigation -->
-		<div class="border-b border-gray-200 flex gap-0">
+		<div class="border-b border-gray-200 flex gap-0 bg-white">
 			<button
+				type="button"
 				on:click={() => currentTab = 'overview'}
-				class={`px-4 py-2 font-medium border-b-2 transition ${isActive('overview') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('overview') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Overview
 			</button>
 			<button
+				type="button"
 				on:click={() => currentTab = 'questions'}
-				class={`px-4 py-2 font-medium border-b-2 transition ${isActive('questions') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('questions') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Questions
 			</button>
 			<button
+				type="button"
 				on:click={() => currentTab = 'results'}
-				class={`px-4 py-2 font-medium border-b-2 transition ${isActive('results') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('results') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Results
 			</button>
@@ -258,7 +261,7 @@
 			<!-- Questions Tab -->
 			{#if isActive('questions')}
 				<div class="bg-white rounded-lg shadow p-6">
-					<QuestionsManager {assessmentId} />
+					<QuestionsManager assessmentId={id} />
 				</div>
 			{/if}
 
