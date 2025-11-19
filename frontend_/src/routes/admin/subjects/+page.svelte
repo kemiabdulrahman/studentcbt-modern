@@ -23,9 +23,9 @@
 		if (!form.name) return;
 		busy = true; error = '';
 		try {
-			const resp = await api.admin.subjects.create(form);
-			subjects.push(resp.subject);
+			await api.admin.subjects.create(form);
 			form.name = '';
+			await load();
 		} catch (err) {
 			console.error('Create subject failed', err);
 			error = err.message || 'Create failed';

@@ -1,21 +1,5 @@
 import { writable, derived } from 'svelte/store';
 
-/**
- * @typedef {Object} ToastMessage
- * @property {string} id
- * @property {'success' | 'error' | 'warning' | 'info'} type
- * @property {string} message
- * @property {number} [duration]
- * @property {boolean} [dismissible]
- */
-
-/**
- * @typedef {Object} Modal
- * @property {string} id
- * @property {string} component
- * @property {any} [props]
- * @property {boolean} [closeable]
- */
 
 // Toast notifications
 function createToastStore() {

@@ -17,7 +17,7 @@
 	let toggleValue = false;
 
 	$: id = $page.params.id;
-
+	
 	onMount(loadAssessment);
 
 	async function loadAssessment() {
@@ -25,8 +25,9 @@
 			const resp = await api.assessments.getById(id);
 			assessment = resp.assessment || resp;
 			toggleValue = assessment.showResults || false;
+			console.log('✅ Assessment loaded:', assessment.title);
 		} catch (err) {
-			console.error('Load assessment failed', err);
+			console.error('❌ Load assessment failed', err);
 			error = err.message || 'Failed to load assessment';
 			toastStore.error(error);
 		}
@@ -83,7 +84,15 @@
 	}
 
 	function isActive(tab) {
-		return currentTab === tab;
+		const active = currentTab === tab;
+		console.log(`isActive("${tab}")`, active, 'currentTab:', currentTab);
+		return active;
+	}
+	
+	function handleTabClick(tab) {
+		console.log('🔴 BEFORE CLICK - currentTab:', currentTab);
+		currentTab = tab;
+		console.log('🟢 AFTER CLICK - currentTab:', currentTab);
 	}
 </script>
 
@@ -145,22 +154,22 @@
 		<div class="border-b border-gray-200 flex gap-0 bg-white">
 			<button
 				type="button"
-				on:click={() => currentTab = 'overview'}
-				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('overview') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				on:click={() => handleTabClick('overview')}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('overview') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Overview
 			</button>
 			<button
 				type="button"
-				on:click={() => currentTab = 'questions'}
-				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('questions') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				on:click={() => handleTabClick('questions')}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('questions') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Questions
 			</button>
 			<button
 				type="button"
-				on:click={() => currentTab = 'results'}
-				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('results') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				on:click={() => handleTabClick('results')}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('results') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Results
 			</button>
@@ -169,8 +178,9 @@
 		<!-- Tab Content -->
 		<div class="min-h-96">
 			<!-- Overview Tab -->
-			{#if isActive('overview')}
+			{#if currentTab === 'overview'}
 				<div class="space-y-4">
+	
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<!-- Assessment Details -->
 						<Card>
@@ -259,14 +269,14 @@
 			{/if}
 
 			<!-- Questions Tab -->
-			{#if isActive('questions')}
+			{#if currentTab === 'questions'}
 				<div class="bg-white rounded-lg shadow p-6">
 					<QuestionsManager assessmentId={id} />
 				</div>
 			{/if}
 
 			<!-- Results Tab -->
-			{#if isActive('results')}
+			{#if currentTab === 'results'}
 				<div class="space-y-4">
 					<div class="text-center py-6 text-gray-500">
 						<p class="text-lg mb-4">📊 View All Attempts</p>
@@ -301,24 +311,23 @@
 </div>
 
 <!-- Results Toggle Modal -->
-{#if showResultsToggle && assessment}
-	<Modal on:close={() => showResultsToggle = false}>
-		<h3 class="text-xl font-bold mb-4">
-			{toggleValue ? 'Show Results' : 'Hide Results'} to Students?
-		</h3>
-		<p class="text-gray-700 mb-4">
-			{#if toggleValue}
-				Students will be able to view their results and answers for this assessment.
-			{:else}
-				Students will NOT be able to view their results for this assessment.
-			{/if}
-		</p>
-		<div class="flex gap-2 justify-end">
-			<Button variant="secondary" on:click={() => showResultsToggle = false}>Cancel</Button>
-			<Button on:click={toggleResultVisibility}>Confirm</Button>
-		</div>
-	</Modal>
-{/if}
+<Modal 
+	open={showResultsToggle}
+	on:close={() => showResultsToggle = false}
+	title={toggleValue ? 'Show Results' : 'Hide Results'}
+>
+	<p class="text-gray-700 mb-4">
+		{#if toggleValue}
+			Students will be able to view their results and answers for this assessment.
+		{:else}
+			Students will NOT be able to view their results for this assessment.
+		{/if}
+	</p>
+	<div class="flex gap-2 justify-end">
+		<Button variant="secondary" on:click={() => showResultsToggle = false}>Cancel</Button>
+		<Button on:click={toggleResultVisibility}>Confirm</Button>
+	</div>
+</Modal>
 
 <style>
 	/* Tailwind handles styling */

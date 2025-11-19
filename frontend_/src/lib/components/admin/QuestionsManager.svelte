@@ -10,7 +10,6 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 
 	export let assessmentId;
-	
 
 	let questions = [];
 	let loading = false;
@@ -367,193 +366,203 @@
 	{/if}
 </div>
 
-<!-- Question Form Modal -->
-{#if showForm}
-	<Modal on:close={closeForm}>
-		<h3 class="text-xl font-bold mb-4">{editingId ? 'Edit Question' : 'Add Question'}</h3>
 
-		<form on:submit|preventDefault={saveQuestion} class="space-y-4">
-			<!-- Question Text -->
-			<div>
-				<label class="block text-sm font-medium mb-1">Question Text *</label>
-				<textarea
-					bind:value={formData.questionText}
-					class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-					rows="3"
-					placeholder="Enter question text"
-				/>
-			</div>
+<Modal 
+	open={showForm}
+	on:close={closeForm}
+	title={editingId ? 'Edit Question' : 'Add Question'}
+>
+	<form on:submit|preventDefault={saveQuestion} class="space-y-4">
+		<!-- Question Text -->
+		<div>
+			<label class="block text-sm font-medium mb-1" for="question-text">Question Text *</label>
+			<textarea
+				id="question-text"
+				bind:value={formData.questionText}
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+				rows="3"
+				placeholder="Enter question text"
+			></textarea>
+		</div>
 
-			<!-- Question Type -->
+		<!-- Question Type -->
+		<div>
+			<label class="block text-sm font-medium mb-1" for="question-type">Question Type *</label>
+			<select
+				id="question-type"
+				bind:value={formData.questionType}
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+			>
+				<option value="MULTIPLE_CHOICE">Multiple Choice</option>
+				<option value="TRUE_FALSE">True/False</option>
+				<option value="FILL_BLANK">Fill in the Blank</option>
+			</select>
+		</div>
+
+		<!-- Options (for Multiple Choice) -->
+		{#if formData.questionType === 'MULTIPLE_CHOICE'}
 			<div>
-				<label class="block text-sm font-medium mb-1">Question Type *</label>
-				<select
-					bind:value={formData.questionType}
-					class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+				<label class="block text-sm font-medium mb-2">Options *</label>
+				<div class="space-y-2">
+					{#each formData.options as option, idx}
+						<div class="flex gap-2">
+							<input
+								type="radio"
+								name="correctAnswer"
+								value={option}
+								bind:group={formData.correctAnswer}
+								class="mt-3"
+							/>
+							<input
+								type="text"
+								bind:value={formData.options[idx]}
+								placeholder={`Option ${idx + 1}`}
+								class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							/>
+							{#if formData.options.length > 2}
+								<button
+									type="button"
+									on:click={() => removeOption(idx)}
+									class="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
+								>
+									Remove
+								</button>
+							{/if}
+						</div>
+					{/each}
+				</div>
+				<button
+					type="button"
+					on:click={addOption}
+					class="mt-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
 				>
-					<option value="MULTIPLE_CHOICE">Multiple Choice</option>
-					<option value="TRUE_FALSE">True/False</option>
-					<option value="FILL_BLANK">Fill in the Blank</option>
-				</select>
+					+ Add Option
+				</button>
 			</div>
-
-			<!-- Options (for Multiple Choice) -->
-			{#if formData.questionType === 'MULTIPLE_CHOICE'}
-				<div>
-					<label class="block text-sm font-medium mb-2">Options *</label>
-					<div class="space-y-2">
-						{#each formData.options as option, idx}
-							<div class="flex gap-2">
-								<input
-									type="radio"
-									name="correctAnswer"
-									value={option}
-									bind:group={formData.correctAnswer}
-									class="mt-3"
-								/>
-								<input
-									type="text"
-									bind:value={formData.options[idx]}
-									placeholder={`Option ${idx + 1}`}
-									class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-								/>
-								{#if formData.options.length > 2}
-									<button
-										type="button"
-										on:click={() => removeOption(idx)}
-										class="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
-									>
-										Remove
-									</button>
-								{/if}
-							</div>
-						{/each}
-					</div>
-					<button
-						type="button"
-						on:click={addOption}
-						class="mt-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
-					>
-						+ Add Option
-					</button>
-				</div>
-			{:else}
-				<div>
-					<label class="block text-sm font-medium mb-1">Correct Answer *</label>
-					<input
-						type="text"
-						bind:value={formData.correctAnswer}
-						placeholder="Enter correct answer"
-						class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-					/>
-				</div>
-			{/if}
-
-			<!-- Marks -->
+		{:else}
 			<div>
-				<label class="block text-sm font-medium mb-1">Marks *</label>
+				<label class="block text-sm font-medium mb-1" for="correct-answer">Correct Answer *</label>
 				<input
-					type="number"
-					bind:value={formData.marks}
-					min="1"
-					max="100"
+					id="correct-answer"
+					type="text"
+					bind:value={formData.correctAnswer}
+					placeholder="Enter correct answer"
 					class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 				/>
 			</div>
+		{/if}
 
-			<!-- Explanation -->
-			<div>
-				<label class="block text-sm font-medium mb-1">Explanation (optional)</label>
-				<textarea
-					bind:value={formData.explanation}
-					class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-					rows="2"
-					placeholder="Explain the correct answer (shown to students after exam)"
-				/>
-			</div>
+		<!-- Marks -->
+		<div>
+			<label class="block text-sm font-medium mb-1" for="marks">Marks *</label>
+			<input
+				id="marks"
+				type="number"
+				bind:value={formData.marks}
+				min="1"
+				max="100"
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+			/>
+		</div>
 
-			<!-- Order Index -->
-			<div>
-				<label class="block text-sm font-medium mb-1">Position</label>
-				<input
-					type="number"
-					bind:value={formData.orderIndex}
-					min="1"
-					class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
+		<!-- Explanation -->
+		<div>
+			<label class="block text-sm font-medium mb-1" for="explanation">Explanation (optional)</label>
+			<textarea
+				id="explanation"
+				bind:value={formData.explanation}
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+				rows="2"
+				placeholder="Explain the correct answer (shown to students after exam)"
+			></textarea>
+		</div>
 
-			<!-- Buttons -->
-			<div class="flex gap-2 justify-end pt-4">
-				<Button variant="secondary" on:click={closeForm}>Cancel</Button>
-				<Button type="submit">{editingId ? 'Update' : 'Add'} Question</Button>
-			</div>
-		</form>
-	</Modal>
-{/if}
+		<!-- Order Index -->
+		<div>
+			<label class="block text-sm font-medium mb-1" for="order-index">Position</label>
+			<input
+				id="order-index"
+				type="number"
+				bind:value={formData.orderIndex}
+				min="1"
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+			/>
+		</div>
+
+		<!-- Buttons -->
+		<div class="flex gap-2 justify-end pt-4">
+			<Button variant="secondary" on:click={closeForm}>Cancel</Button>
+			<Button type="submit">{editingId ? 'Update' : 'Add'} Question</Button>
+		</div>
+	</form>
+</Modal>
 
 <!-- Bulk Import Modal -->
-{#if bulkImportMode}
-	<Modal on:close={closeBulkImport}>
-		<div>
-			{#if bulkImportStep === 'format'}
-				<h3 class="text-xl font-bold mb-4">📤 Bulk Import Questions</h3>
-				<div class="space-y-4">
-					<Alert type="info">
-						Import multiple questions at once using CSV or JSON file format
-					</Alert>
+<Modal 
+	open={bulkImportMode}
+	on:close={closeBulkImport}
+	title="📤 Bulk Import Questions"
+>
+	<div>
+		{#if bulkImportStep === 'format'}
+			<div class="space-y-4">
+				<Alert type="info">
+					Import multiple questions at once using CSV or JSON file format
+				</Alert>
 
-					<div class="space-y-3">
-						<div>
-							<h4 class="font-semibold mb-2">CSV Format</h4>
-							<p class="text-sm text-gray-600 mb-2">Required columns: questionText, questionType, correctAnswer, marks (optional)</p>
-							<p class="text-sm text-gray-600 mb-2">For multiple choice, use: option1, option2, option3, option4</p>
-							<div class="bg-gray-50 p-3 rounded text-xs font-mono mb-2 overflow-auto">
+				<div class="space-y-3">
+					<div>
+						<h4 class="font-semibold mb-2">CSV Format</h4>
+						<p class="text-sm text-gray-600 mb-2">Required columns: questionText, questionType, correctAnswer, marks (optional)</p>
+						<p class="text-sm text-gray-600 mb-2">For multiple choice, use: option1, option2, option3, option4</p>
+						<div class="bg-gray-50 p-3 rounded text-xs font-mono mb-2 overflow-auto">
 questionText,questionType,correctAnswer,marks,explanation,option1,option2,option3
 What is 2+2?,MULTIPLE_CHOICE,4,1,The sum of 2 and 2,3,4,5
 True or False: Sky is blue,TRUE_FALSE,True,1,,
 What is capital of France?,FILL_BLANK,Paris,1,The capital city
-							</div>
-						</div>
-
-						<div>
-							<h4 class="font-semibold mb-2">JSON Format</h4>
-							<p class="text-sm text-gray-600 mb-2">Array of question objects with required fields</p>
-							<div class="bg-gray-50 p-3 rounded text-xs font-mono mb-2 overflow-auto">
-								<div>Required: questionText, questionType, correctAnswer</div>
-								<div>Optional: marks, explanation, options</div>
-								<div class="mt-2 text-gray-500">Upload file to see example</div>
-							</div>
 						</div>
 					</div>
 
-					<div class="border-t pt-4">
-						<label class="block text-sm font-medium mb-2">Select File</label>
-						<input 
-							type="file" 
-							accept=".csv,.json"
-							on:change={handleBulkFileSelect}
-							class="block w-full text-sm text-gray-500
-								file:mr-4 file:py-2 file:px-4
-								file:rounded-lg file:border-0
-								file:text-sm file:font-semibold
-								file:bg-blue-50 file:text-blue-700
-								hover:file:bg-blue-100"
-						/>
+					<div>
+						<h4 class="font-semibold mb-2">JSON Format</h4>
+						<p class="text-sm text-gray-600 mb-2">Array of question objects with required fields</p>
+						<div class="bg-gray-50 p-3 rounded text-xs font-mono mb-2 overflow-auto">
+							<div>Required: questionText, questionType, correctAnswer</div>
+							<div>Optional: marks, explanation, options</div>
+							<div class="mt-2 text-gray-500">Upload file to see example</div>
+						</div>
 					</div>
-
-					{#if bulkImportError}
-						<Alert type="error">{bulkImportError}</Alert>
-					{/if}
 				</div>
-			{:else if bulkImportStep === 'preview'}
-				<h3 class="text-xl font-bold mb-4">Preview ({bulkQuestions.length} questions)</h3>
+
+				<div class="border-t pt-4">
+					<label class="block text-sm font-medium mb-2" for="bulk-file">Select File</label>
+					<input 
+						id="bulk-file"
+						type="file" 
+						accept=".csv,.json"
+						on:change={handleBulkFileSelect}
+						class="block w-full text-sm text-gray-500
+							file:mr-4 file:py-2 file:px-4
+							file:rounded-lg file:border-0
+							file:text-sm file:font-semibold
+							file:bg-blue-50 file:text-blue-700
+							hover:file:bg-blue-100"
+					/>
+				</div>
+
+				{#if bulkImportError}
+					<Alert type="error">{bulkImportError}</Alert>
+				{/if}
+			</div>
+		{:else if bulkImportStep === 'preview'}
+			<div class="space-y-4">
+				<h3 class="text-lg font-bold">Preview ({bulkQuestions.length} questions)</h3>
 				
 				{#if bulkImportError}
-					<Alert type="error" class="mb-4">{bulkImportError}</Alert>
+					<Alert type="error">{bulkImportError}</Alert>
 				{/if}
 
-				<div class="space-y-3 max-h-96 overflow-y-auto mb-4">
+				<div class="space-y-3 max-h-96 overflow-y-auto">
 					{#each bulkQuestions as q, idx}
 						<div class="border rounded p-3 bg-gray-50">
 							<div class="flex gap-2 mb-2">
@@ -590,10 +599,10 @@ What is capital of France?,FILL_BLANK,Paris,1,The capital city
 						{bulkImporting ? 'Importing...' : '✓ Import All'}
 					</Button>
 				</div>
-			{/if}
-		</div>
-	</Modal>
-{/if}
+			</div>
+		{/if}
+	</div>
+</Modal>
 
 <style>
 	/* Tailwind handles styling */
