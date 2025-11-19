@@ -25,10 +25,24 @@
 		try {
 			const resp = await api.student.getAssessmentForExam(assessmentId);
 			assessment = resp.assessment || resp;
-			totalQuestions = assessment.questions.length;
+			totalQuestions = assessment?.questions?.length || 0;
+			
+			// Start the assessment attempt if not already started
+			await startAssessmentAttempt();
 		} catch (err) {
 			console.error('Load assessment failed', err);
 			error = err.message || 'Failed to load assessment';
+		}
+	}
+
+	async function startAssessmentAttempt() {
+		try {
+			await api.student.startAssessment(assessmentId);
+			// After starting, load attempt status
+			await loadAttemptStatus();
+		} catch (err) {
+			console.error('Start assessment failed', err);
+			error = err.message || 'Failed to start assessment';
 		}
 	}
 
@@ -38,7 +52,7 @@
 			timeRemaining = resp.timeRemaining || 0;
 			answeredQuestions = resp.answeredQuestions || 0;
 			
-			if (resp.attempt?.answers) {
+			if (resp.attempt?.answers && Array.isArray(resp.attempt.answers)) {
 				resp.attempt.answers.forEach(ans => {
 					answers[ans.questionId] = ans.answer;
 				});
@@ -52,6 +66,9 @@
 	}
 
 	function startTimer() {
+		if (timerInterval) {
+			clearInterval(timerInterval);
+		}
 		timerInterval = setInterval(() => {
 			timeRemaining--;
 			if (timeRemaining <= 0) {
@@ -80,6 +97,7 @@
 	}
 
 	async function submitExam() {
+		if (submitting) return;
 		submitting = true;
 		clearInterval(timerInterval);
 		try {
@@ -89,7 +107,6 @@
 		} catch (err) {
 			console.error('Submit exam failed', err);
 			error = err.message || 'Failed to submit exam';
-		} finally {
 			submitting = false;
 		}
 	}
@@ -107,9 +124,10 @@
 	}
 
 	onMount(() => {
-		loadAttemptStatus();
 		return () => {
-			clearInterval(timerInterval);
+			if (timerInterval) {
+				clearInterval(timerInterval);
+			}
 		};
 	});
 </script>
@@ -199,87 +217,89 @@
 
 			<!-- Question Display -->
 			<div class="flex-1 min-w-0">
-				<div class="bg-white rounded-lg shadow p-4 sm:p-6">
+				{#if assessment.questions[currentQuestion]}
 					{@const question = assessment.questions[currentQuestion]}
-					<div class="mb-6">
-						<div class="flex flex-col sm:flex-row justify-between sm:items-start gap-2 mb-2">
-							<h3 class="text-base sm:text-lg font-semibold">Question {currentQuestion + 1} of {totalQuestions}</h3>
-							<span class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded text-xs sm:text-sm font-medium whitespace-nowrap">
-								Marks: {question.marks}
-							</span>
-						</div>
-						<p class="text-gray-800 text-sm sm:text-base break-words">{question.questionText}</p>
-					</div>
-
-					{#if question.questionType === 'MULTIPLE_CHOICE'}
-						<div class="space-y-2 sm:space-y-3 mb-6">
-							{#each question.options as option}
-								<label class="flex items-start p-2 sm:p-3 border-2 rounded cursor-pointer transition hover:bg-gray-50 {
-									answers[question.id] === option ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
-								}">
-									<input 
-										type="radio" 
-										name={question.id}
-										value={option}
-										checked={answers[question.id] === option}
-										on:change={() => saveAnswer(question.id, option)}
-										class="w-4 h-4 mt-0.5 flex-shrink-0"
-									/>
-									<span class="ml-2 sm:ml-3 text-sm sm:text-base break-words">{option}</span>
-								</label>
-							{/each}
-						</div>
-					{:else if question.questionType === 'TRUE_FALSE'}
-						<div class="space-y-2 sm:space-y-3 mb-6">
-							{#each ['True', 'False'] as option}
-								<label class="flex items-center p-2 sm:p-3 border-2 rounded cursor-pointer transition hover:bg-gray-50 {
-									answers[question.id] === option ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
-								}">
-									<input 
-										type="radio" 
-										name={question.id}
-										value={option}
-										checked={answers[question.id] === option}
-										on:change={() => saveAnswer(question.id, option)}
-										class="w-4 h-4 flex-shrink-0"
-									/>
-									<span class="ml-2 sm:ml-3 text-sm sm:text-base">{option}</span>
-								</label>
-							{/each}
-						</div>
-					{:else if question.questionType === 'FILL_BLANK'}
+					<div class="bg-white rounded-lg shadow p-4 sm:p-6">
 						<div class="mb-6">
-							<input 
-								type="text"
-								placeholder="Enter your answer"
-								value={answers[question.id] || ''}
-								on:change={(e) => saveAnswer(question.id, e.target.value)}
-								class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded focus:border-blue-600 focus:outline-none"
-							/>
+							<div class="flex flex-col sm:flex-row justify-between sm:items-start gap-2 mb-2">
+								<h3 class="text-base sm:text-lg font-semibold">Question {currentQuestion + 1} of {totalQuestions}</h3>
+								<span class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded text-xs sm:text-sm font-medium whitespace-nowrap">
+									Marks: {question.marks}
+								</span>
+							</div>
+							<p class="text-gray-800 text-sm sm:text-base break-words">{question.questionText}</p>
 						</div>
-					{/if}
 
-					<!-- Navigation -->
-					<div class="flex gap-2 justify-between">
-						<button 
-							on:click={prevQuestion}
-							disabled={currentQuestion === 0}
-							class="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							← Previous
-						</button>
-						<span class="px-3 py-2 text-xs sm:text-sm text-gray-600 flex items-center">
-							{currentQuestion + 1} / {totalQuestions}
-						</span>
-						<button 
-							on:click={nextQuestion}
-							disabled={currentQuestion === totalQuestions - 1}
-							class="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							Next →
-						</button>
+						{#if question.questionType === 'MULTIPLE_CHOICE'}
+							<div class="space-y-2 sm:space-y-3 mb-6">
+								{#each question.options as option}
+									<label class="flex items-start p-2 sm:p-3 border-2 rounded cursor-pointer transition hover:bg-gray-50 {
+										answers[question.id] === option ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
+									}">
+										<input 
+											type="radio" 
+											name={question.id}
+											value={option}
+											checked={answers[question.id] === option}
+											on:change={() => saveAnswer(question.id, option)}
+											class="w-4 h-4 mt-0.5 flex-shrink-0"
+										/>
+										<span class="ml-2 sm:ml-3 text-sm sm:text-base break-words">{option}</span>
+									</label>
+								{/each}
+							</div>
+						{:else if question.questionType === 'TRUE_FALSE'}
+							<div class="space-y-2 sm:space-y-3 mb-6">
+								{#each ['True', 'False'] as option}
+									<label class="flex items-center p-2 sm:p-3 border-2 rounded cursor-pointer transition hover:bg-gray-50 {
+										answers[question.id] === option ? 'border-blue-600 bg-blue-50' : 'border-gray-300'
+									}">
+										<input 
+											type="radio" 
+											name={question.id}
+											value={option}
+											checked={answers[question.id] === option}
+											on:change={() => saveAnswer(question.id, option)}
+											class="w-4 h-4 flex-shrink-0"
+										/>
+										<span class="ml-2 sm:ml-3 text-sm sm:text-base">{option}</span>
+									</label>
+								{/each}
+							</div>
+						{:else if question.questionType === 'FILL_BLANK'}
+							<div class="mb-6">
+								<input 
+									type="text"
+									placeholder="Enter your answer"
+									value={answers[question.id] || ''}
+									on:change={(e) => saveAnswer(question.id, e.target.value)}
+									class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded focus:border-blue-600 focus:outline-none"
+								/>
+							</div>
+						{/if}
+
+						<!-- Navigation -->
+						<div class="flex gap-2 justify-between">
+							<button 
+								on:click={prevQuestion}
+								disabled={currentQuestion === 0}
+								class="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								← Previous
+							</button>
+							<span class="px-3 py-2 text-xs sm:text-sm text-gray-600 flex items-center">
+								{currentQuestion + 1} / {totalQuestions}
+							</span>
+							<button 
+								on:click={nextQuestion}
+								disabled={currentQuestion === totalQuestions - 1}
+								class="px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								Next →
+							</button>
+						</div>
 					</div>
-				</div>
+				{/if}
 			</div>
 		</div>
 	</div>
