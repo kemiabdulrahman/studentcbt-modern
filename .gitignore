@@ -49,3 +49,6 @@ logs/
 uploads/
 .env.production
 .env.staging
+
+
+.venv
