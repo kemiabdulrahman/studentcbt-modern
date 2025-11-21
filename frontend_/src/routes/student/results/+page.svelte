@@ -12,13 +12,25 @@
 
 	async function loadResults() {
 		loading = true;
+		error = '';
 		try {
 			const resp = await api.student.getResults({ page: pageNum, limit });
-			results = resp.results || [];
+			
+			if (!resp) {
+				throw new Error('No response from server');
+			}
+			
+			results = Array.isArray(resp.results) ? resp.results : [];
 			pagination = resp.pagination || {};
+			
+			if (results.length === 0) {
+				console.log('No results loaded');
+			}
 		} catch (err) {
 			console.error('Load results failed', err);
 			error = err.message || 'Failed to load results';
+			results = [];
+			pagination = {};
 			toastStore.error(error);
 		} finally {
 			loading = false;
@@ -65,7 +77,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each results as result}
+					{#each results.filter(r => r.percentage >= r.assessment.passMarks) as result}
 						<tr class="border-b hover:bg-gray-50 transition">
 							<td class="px-6 py-4 font-medium">{result.assessment.title}</td>
 							<td class="px-6 py-4">{result.assessment.subject.name}</td>

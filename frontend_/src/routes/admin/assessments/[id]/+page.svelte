@@ -13,10 +13,16 @@
 	let error = '';
 	let currentTab = 'overview';
 	let publishing = false;
+	let unpublishing = false;
 	let showResultsToggle = false;
 	let toggleValue = false;
 
 	$: id = $page.params.id;
+
+	// Helper to check active tab
+	function isActive(tab) {
+		return currentTab === tab;
+	}
 	
 	onMount(loadAssessment);
 
@@ -52,6 +58,20 @@
 		}
 	}
 
+	async function unpublishAssessment() {
+		unpublishing = true;
+		try {
+			await api.assessments.update(id, { status: 'DRAFT' });
+			toastStore.success('Assessment unpublished successfully');
+			loadAssessment();
+		} catch (err) {
+			console.error('Unpublish failed', err);
+			toastStore.error(err.message || 'Failed to unpublish assessment');
+		} finally {
+			unpublishing = false;
+		}
+	}
+
 	async function toggleResultVisibility() {
 		try {
 			await api.assessments.toggleResults(id, toggleValue);
@@ -84,15 +104,7 @@
 	}
 
 	function isActive(tab) {
-		const active = currentTab === tab;
-		console.log(`isActive("${tab}")`, active, 'currentTab:', currentTab);
-		return active;
-	}
-	
-	function handleTabClick(tab) {
-		console.log('🔴 BEFORE CLICK - currentTab:', currentTab);
-		currentTab = tab;
-		console.log('🟢 AFTER CLICK - currentTab:', currentTab);
+		return currentTab === tab;
 	}
 </script>
 
@@ -154,21 +166,21 @@
 		<div class="border-b border-gray-200 flex gap-0 bg-white">
 			<button
 				type="button"
-				on:click={() => handleTabClick('overview')}
+				on:click={() => currentTab = 'overview'}
 				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('overview') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Overview
 			</button>
 			<button
 				type="button"
-				on:click={() => handleTabClick('questions')}
+				on:click={() => currentTab = 'questions'}
 				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('questions') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Questions
 			</button>
 			<button
 				type="button"
-				on:click={() => handleTabClick('results')}
+				on:click={() => currentTab = 'results'}
 				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('results') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Results
@@ -238,6 +250,19 @@
 									{/if}
 								</div>
 							{:else if assessment.status === 'PUBLISHED'}
+								<div>
+									<Button
+										on:click={unpublishAssessment}
+										disabled={unpublishing}
+										variant="secondary"
+										class="w-full"
+									>
+										{unpublishing ? 'Unpublishing...' : '↩️ Unpublish Assessment'}
+									</Button>
+									<p class="text-xs text-gray-600 mt-1">
+										Assessment is published and visible to students. Unpublishing will hide it.
+									</p>
+								</div>
 								<div class="p-3 bg-green-50 border border-green-200 rounded text-sm text-green-900">
 									✓ This assessment is published and available to students
 								</div>
