@@ -120,6 +120,10 @@ const changePassword = async (req, res) => {
       where: { id: userId }
     });
 
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ error: 'Current password is incorrect' });
