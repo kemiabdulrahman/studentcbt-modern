@@ -20,7 +20,7 @@
 		loading = true;
 		try {
 			const resp = await api.assessments.getStudentAttemptDetails(assessmentId, studentId);
-			attempt = resp.attempt;
+			attempt = resp;
 		} catch (err) {
 			console.error('Load attempt failed:', err);
 			error = err.message || 'Failed to load attempt details';
@@ -149,10 +149,10 @@
 							<div class="flex justify-between items-start gap-3">
 								<div>
 									<div class="font-bold text-lg">Question {idx + 1}</div>
-									<p class="text-gray-900 mt-1">{answer.question?.questionText}</p>
+									<p class="text-gray-900 mt-1">{answer.question.text}</p>
 								</div>
 								<div class={`px-3 py-1 rounded font-bold text-sm whitespace-nowrap ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-									{answer.marksAwarded}/{answer.question?.marks}
+									{answer.marksAwarded}/{answer.question.marks}
 								</div>
 							</div>
 						</div>
@@ -167,16 +167,16 @@
 
 						<!-- Correct Answer (if wrong) -->
 						{#if !isCorrect}
-							<div class="bg-gray-50 p-3 rounded">
-								<p class="text-sm font-semibold text-gray-700">Correct Answer</p>
-								<p class="mt-1 p-2 rounded bg-green-100 text-green-900">
-									{answer.question?.correctAnswer}
-								</p>
-							</div>
+						<div class="bg-gray-50 p-3 rounded">
+							<p class="text-sm font-semibold text-gray-700">Correct Answer</p>
+							<p class="mt-1 p-2 rounded bg-green-100 text-green-900">
+								{answer.question.correctAnswer}
+							</p>
+						</div>
 						{/if}
 
 						<!-- Explanation -->
-						{#if answer.question?.explanation}
+						{#if answer.question.explanation}
 							<div class="bg-blue-50 border border-blue-200 p-3 rounded">
 								<p class="text-sm font-semibold text-blue-900">Explanation</p>
 								<p class="mt-1 text-blue-900 text-sm">

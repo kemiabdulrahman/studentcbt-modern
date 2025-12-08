@@ -17,7 +17,7 @@
 	let showForm = false;
 	let editingId = null;
 	let bulkImportMode = false;
-	let bulkImportStep = 'format'; // 'format', 'preview', 'uploading'
+	let bulkImportStep = 'format';
 	let bulkFile = null;
 	let bulkQuestions = [];
 	let bulkImportError = '';

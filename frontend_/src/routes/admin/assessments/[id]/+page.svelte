@@ -102,10 +102,6 @@
 			toastStore.error(err.message || 'Export failed');
 		}
 	}
-
-	function isActive(tab) {
-		return currentTab === tab;
-	}
 </script>
 
 <div class="space-y-6">
@@ -166,22 +162,22 @@
 		<div class="border-b border-gray-200 flex gap-0 bg-white">
 			<button
 				type="button"
-				on:click={() => currentTab = 'overview'}
-				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('overview') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				on:click={() => { currentTab = 'overview'; }}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${currentTab === 'overview' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Overview
 			</button>
 			<button
 				type="button"
-				on:click={() => currentTab = 'questions'}
-				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('questions') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				on:click={() => { currentTab = 'questions'; }}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${currentTab === 'questions' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Questions
 			</button>
 			<button
 				type="button"
-				on:click={() => currentTab = 'results'}
-				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${isActive('results') ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+				on:click={() => { currentTab = 'results'; }}
+				class={`px-4 py-2 font-medium border-b-2 transition cursor-pointer ${currentTab === 'results' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
 			>
 				Results
 			</button>

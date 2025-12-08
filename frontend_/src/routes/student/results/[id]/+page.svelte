@@ -13,8 +13,8 @@
 	async function loadResult() {
 		loading = true;
 		try {
-			const attemptId = $page.params.id;
-			const resp = await api.student.getDetailedResult(attemptId);
+			const assessmentId = $page.params.id;
+			const resp = await api.student.getDetailedResult(assessmentId);
 			result = resp;
 			assessment = resp.assessment;
 			answers = resp.answers || [];

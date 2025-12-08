@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import api from '$lib/utils/api';
 
 	let subjects = [];
@@ -30,6 +31,10 @@
 			console.error('Create subject failed', err);
 			error = err.message || 'Create failed';
 		} finally { busy = false; }
+	}
+
+	function viewSubject(id) {
+		goto(`/admin/classes?subject=${id}`);
 	}
 </script>
 
@@ -63,7 +68,13 @@
 							<td class="px-4 py-3 text-gray-600">{i + 1}</td>
 							<td class="px-4 py-3 text-gray-900 font-medium">{s.name}</td>
 							<td class="px-4 py-3">
-								<button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</button>
+								<button 
+									type="button" 
+									on:click={() => viewSubject(s.id)}
+									class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+								>
+									View
+								</button>
 							</td>
 						</tr>
 					{/each}
