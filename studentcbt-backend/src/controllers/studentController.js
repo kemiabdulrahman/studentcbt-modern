@@ -574,6 +574,11 @@ const getDetailedResult = async (req, res) => {
             showResults: true,
             subject: {
               select: { name: true }
+            },
+            questions: {
+              select: {
+                id: true
+              }
             }
           }
         },
@@ -603,19 +608,51 @@ const getDetailedResult = async (req, res) => {
       return res.status(404).json({ error: 'Assessment result not found' });
     }
 
-    if (!attempt.assessment.showResults) {
-      return res.status(403).json({ 
-        error: 'Results are not available for viewing yet' 
-      });
-    }
-
+    // Allow students to view their own results immediately after submission (always available to them)
+    // The showResults flag only controls whether results are visible to other students/on dashboard
     if (!['SUBMITTED', 'TIMED_OUT'].includes(attempt.status)) {
       return res.status(400).json({ 
         error: 'Assessment not completed yet' 
       });
     }
 
-    res.json({ attempt });
+    // Transform response to match frontend expectations
+    const transformedAnswers = attempt.answers.map(answer => {
+      return {
+        id: answer.id,
+        studentAnswer: answer.answer,
+        isCorrect: answer.isCorrect,
+        marksAwarded: answer.marksAwarded,
+        question: {
+          id: answer.question.id,
+          text: answer.question.questionText,
+          type: answer.question.questionType,
+          options: answer.question.options,
+          correctAnswer: answer.question.correctAnswer,
+          marks: answer.question.marks,
+          explanation: answer.question.explanation
+        }
+      };
+    });
+
+    const passed = attempt.percentage >= attempt.assessment.passMarks;
+
+    res.json({
+      id: attempt.id,
+      totalScore: attempt.totalScore,
+      percentage: attempt.percentage,
+      passed,
+      status: attempt.status,
+      assessment: {
+        id: attempt.assessment.id,
+        title: attempt.assessment.title,
+        totalMarks: attempt.assessment.totalMarks,
+        passMarks: attempt.assessment.passMarks,
+        subject: attempt.assessment.subject,
+        questions: attempt.assessment.questions
+      },
+      answers: transformedAnswers
+    });
   } catch (error) {
     console.error('Get detailed result error:', error);
     res.status(500).json({ error: 'Internal server error' });

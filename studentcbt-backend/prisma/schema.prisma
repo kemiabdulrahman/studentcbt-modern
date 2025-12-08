@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // or "sqlite" for development
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -15,123 +15,102 @@ model User {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relationship
-  student Student?
+  student   Student?
 
   @@map("users")
 }
 
 model Student {
-  id        String @id @default(cuid())
-  userId    String @unique
-  studentId String @unique
+  id        String      @id @default(cuid())
+  userId    String      @unique
+  studentId String      @unique
   firstName String
   lastName  String
   classId   String
-
-  // Relationships
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  class     SchoolClass @relation(fields: [classId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   attempts  Attempt[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  class     SchoolClass @relation(fields: [classId], references: [id])
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("students")
 }
 
 model SchoolClass {
-  id     String @id @default(cuid())
-  name   String // JSS1, JSS2, SS1, SS2, etc.
-  stream String? // Science, Art, Commercial (for SS classes)
-
-  // Relationships
-  students     Student[]
-  assessments  Assessment[]
+  id            String         @id @default(cuid())
+  name          String
+  stream        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  assessments   Assessment[]
   classSubjects ClassSubject[]
+  students      Student[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Composite unique constraint: Same class level can have different streams
   @@unique([name, stream])
   @@map("school_classes")
 }
 
 model Subject {
-  id   String @id @default(cuid())
-  name String @unique
-
-  // Relationships
+  id            String         @id @default(cuid())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   assessments   Assessment[]
   classSubjects ClassSubject[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@map("subjects")
 }
 
 model ClassSubject {
-  id        String @id @default(cuid())
+  id        String      @id @default(cuid())
   classId   String
   subjectId String
-
-  // Relationships
-  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
-  subject Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
+  class     SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject   Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@unique([classId, subjectId])
   @@map("class_subjects")
 }
 
 model Assessment {
-  id              String           @id @default(cuid())
-  title           String
-  description     String?
-  subjectId       String
-  classId         String
-  duration        Int              // in minutes
-  totalMarks      Int              @default(0)
-  passMarks       Int              @default(0)
-  status          AssessmentStatus @default(DRAFT)
-  showResults     Boolean          @default(false)
-  startTime       DateTime?
-  endTime         DateTime?
-  instructions    String?
-
-  // Relationships
-  subject   Subject    @relation(fields: [subjectId], references: [id])
-  class     SchoolClass @relation(fields: [classId], references: [id])
-  questions Question[]
-  attempts  Attempt[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String           @id @default(cuid())
+  title        String
+  description  String?
+  subjectId    String
+  classId      String
+  duration     Int
+  totalMarks   Int              @default(0)
+  passMarks    Int              @default(0)
+  status       AssessmentStatus @default(DRAFT)
+  showResults  Boolean          @default(false)
+  startTime    DateTime?
+  endTime      DateTime?
+  instructions String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  class        SchoolClass      @relation(fields: [classId], references: [id])
+  subject      Subject          @relation(fields: [subjectId], references: [id])
+  attempts     Attempt[]
+  questions    Question[]
 
   @@map("assessments")
 }
 
 model Question {
-  id           String       @id @default(cuid())
-  assessmentId String
-  questionText String
-  questionType QuestionType
-  options      Json? // For MCQ options: ["A. Option1", "B. Option2", ...]
+  id            String       @id @default(cuid())
+  assessmentId  String
+  questionText  String
+  questionType  QuestionType
+  options       Json?
   correctAnswer String
-  marks        Int          @default(1)
-  explanation  String?
-  orderIndex   Int
-
-  // Relationships
-  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  answers    Answer[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  marks         Int          @default(1)
+  explanation   String?
+  orderIndex    Int
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  answers       Answer[]
+  assessment    Assessment   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
 
   @@map("questions")
 }
@@ -145,39 +124,32 @@ model Attempt {
   status       AttemptStatus @default(IN_PROGRESS)
   totalScore   Int           @default(0)
   percentage   Float         @default(0.0)
-  timeSpent    Int?          // in seconds
-
-  // Relationships
-  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  answers    Answer[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  timeSpent    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  answers      Answer[]
+  assessment   Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, assessmentId])
   @@map("attempts")
 }
 
 model Answer {
-  id         String  @id @default(cuid())
-  attemptId  String
-  questionId String
-  answer     String
-  isCorrect  Boolean @default(false)
-  marksAwarded Int   @default(0)
-
-  // Relationships
-  attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  attemptId    String
+  questionId   String
+  answer       String
+  isCorrect    Boolean  @default(false)
+  marksAwarded Int      @default(0)
+  createdAt    DateTime @default(now())
+  attempt      Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, questionId])
   @@map("answers")
 }
 
-// Enums
 enum UserRole {
   ADMIN
   STUDENT

@@ -101,21 +101,24 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-  console.log(`📚 API Documentation available at:`);
-  console.log(`   - Swagger UI: http://localhost:${PORT}/api-docs`);
-  console.log(`   - ReDoc (local): http://localhost:${PORT}/redoc`);
-  console.log(`   - ReDoc (online CDN): http://localhost:${PORT}/redoc-online`);
-  
-  // Create default admin on startup
-  try {
-    await createDefaultAdmin();
-  } catch (error) {
-    console.error('Error creating default admin:', error.message);
-  }
-});
-
+// Export app for testing
 module.exports = app;
+
+// Start server (only in non-test environments)
+if (process.env.NODE_ENV !== 'test') {
+  const server = app.listen(PORT, async () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+    console.log(`📚 API Documentation available at:`);
+    console.log(`   - Swagger UI: http://localhost:${PORT}/api-docs`);
+    console.log(`   - ReDoc (local): http://localhost:${PORT}/redoc`);
+    console.log(`   - ReDoc (online CDN): http://localhost:${PORT}/redoc-online`);
+    
+    // Create default admin on startup
+    try {
+      await createDefaultAdmin();
+    } catch (error) {
+      console.error('Error creating default admin:', error.message);
+    }
+  });
+}

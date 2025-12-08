@@ -466,8 +466,14 @@ const getAssessmentResults = async (req, res) => {
       averageScore: scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0,
       highestScore: scores.length > 0 ? Math.max(...scores) : 0,
       lowestScore: scores.length > 0 ? Math.min(...scores) : 0,
-      passCount: attempts.filter(attempt => attempt.totalScore >= assessment.passMarks).length,
-      failCount: attempts.filter(attempt => attempt.totalScore < assessment.passMarks).length
+      passCount: attempts.filter(attempt => {
+        const percentage = (attempt.totalScore / assessment.totalMarks) * 100;
+        return percentage >= assessment.passMarks;
+      }).length,
+      failCount: attempts.filter(attempt => {
+        const percentage = (attempt.totalScore / assessment.totalMarks) * 100;
+        return percentage < assessment.passMarks;
+      }).length
     };
 
     res.json({
@@ -544,7 +550,33 @@ const getStudentAttemptDetails = async (req, res) => {
       return res.status(404).json({ error: 'Attempt not found' });
     }
 
-    res.json({ attempt });
+    // Transform response to match frontend expectations
+    const transformedAnswers = attempt.answers.map(answer => ({
+      id: answer.id,
+      studentAnswer: answer.answer,
+      isCorrect: answer.isCorrect,
+      marksAwarded: answer.marksAwarded,
+      question: {
+        id: answer.question.id,
+        text: answer.question.questionText,
+        type: answer.question.questionType,
+        options: answer.question.options,
+        correctAnswer: answer.question.correctAnswer,
+        marks: answer.question.marks,
+        explanation: answer.question.explanation
+      }
+    }));
+
+    res.json({
+      id: attempt.id,
+      studentId: attempt.studentId,
+      student: attempt.student,
+      totalScore: attempt.totalScore,
+      percentage: attempt.percentage,
+      status: attempt.status,
+      assessment: attempt.assessment,
+      answers: transformedAnswers
+    });
   } catch (error) {
     console.error('Get attempt details error:', error);
     res.status(500).json({ error: 'Internal server error' });

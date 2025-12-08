@@ -1,4 +1,4 @@
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 
@@ -31,12 +31,20 @@ class FileProcessor {
   
   static async parseStudentUploadFile(filePath) {
     try {
-      const workbook = XLSX.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(filePath);
       
-      // Convert to JSON
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const worksheet = workbook.worksheets[0];
+      if (!worksheet) {
+        throw new Error('No worksheet found in file');
+      }
+      
+      // Convert to JSON array
+      const jsonData = [];
+      worksheet.eachRow((row, rowNumber) => {
+        const rowValues = row.values ? row.values.slice(1) : []; // slice(1) to remove undefined at index 0
+        jsonData.push(rowValues);
+      });
       
       if (jsonData.length === 0) {
         throw new Error('File is empty');
@@ -191,11 +199,20 @@ class FileProcessor {
   
   static async parseQuestionUploadFile(filePath) {
     try {
-      const workbook = XLSX.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(filePath);
       
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const worksheet = workbook.worksheets[0];
+      if (!worksheet) {
+        throw new Error('No worksheet found in file');
+      }
+      
+      // Convert to JSON array
+      const jsonData = [];
+      worksheet.eachRow((row, rowNumber) => {
+        const rowValues = row.values ? row.values.slice(1) : [];
+        jsonData.push(rowValues);
+      });
       
       if (jsonData.length === 0) {
         throw new Error('File is empty');
